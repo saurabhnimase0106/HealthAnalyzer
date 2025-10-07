@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Health Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome (for modern icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        // Restored Dark Theme Colors
+                        'primary-blue': '#60a5fa', /* Lighter blue for dark theme */
+                        'primary-gradient-start': '#1d4ed8',
+                        'primary-gradient-end': '#3b82f6',
+                        'dark-bg': '#0f172a', /* Deep Slate */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Restored Glass Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08); /* Very slight transparency */
+            backdrop-filter: blur(15px); /* Strong blur effect */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Light border for definition */
+            border-radius: 1rem; /* match rounded-2xl */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        /* Input Field Style for Dark Theme */
+        .dark-input {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #f3f4f6;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .dark-input:focus {
+             border-color: #60a5fa;
+             box-shadow: 0 0 0 1px #60a5fa;
+        }
+
+        /* Loading Dots (kept for visual context, but not used now) */
+        .loading-dot {
+            animation: dot-flashing 1s infinite alternate;
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            margin: 0 2px;
+            opacity: 0;
+        }
+        .loading-dot:nth-child(1) { animation-delay: 0s; }
+        .loading-dot:nth-child(2) { animation-delay: 0.3s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.6s; }
+        @keyframes dot-flashing {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .gradient-button {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #1d4ed8;
+            --tw-gradient-to: #3b82f6;
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+        }
+        .gradient-button:hover {
+             --tw-gradient-from: #1e40af;
+             --tw-gradient-to: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-dark-bg min-h-screen p-4 sm:p-8 font-sans text-gray-100">
+
+    <!-- Header & Title -->
+    <header class="mb-8 max-w-6xl mx-auto">
+        <h1 class="text-4xl font-extrabold text-gray-50 flex items-center">
+            <i class="fas fa-heartbeat text-primary-blue mr-3 w-8 text-center"></i>
+            Advanced Health Analyzer (Local Mock)
+        </h1>
+        <p class="text-gray-400 mt-1">Input your details for a personalized, structured diagnosis, prognosis, and plan.</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Input / Control Panel (Left Column) -->
+            <div class="lg:col-span-1">
+                <div class="glass-card p-6 rounded-2xl mb-6">
+                    <h2 class="text-xl font-bold text-gray-50 mb-4 border-b border-gray-700 pb-2">Health Input</h2>
+                    <form id="analysisForm">
+                        <div class="mb-4">
+                            <label for="symptoms" class="block text-sm font-semibold text-gray-300 mb-2">Primary Symptoms & Conditions (Use any language):</label>
+                            <textarea id="symptoms" rows="6" class="w-full p-3 dark-input rounded-xl focus:ring-primary-blue focus:border-primary-blue transition resize-none" placeholder="e.g., 'Mild fever and cough for three days.' (Try English, Hindi, or Marathi to test translation!)"></textarea>
+                        </div>
+                        
+                        <!-- Advanced Input Options -->
+                        <div class="mb-6 space-y-3 p-4 bg-gray-800 rounded-xl border border-gray-700">
+                            <label class="block text-sm font-semibold text-gray-300">Advanced Details (Optional but Recommended):</label>
+                            <div class="flex space-x-4">
+                                <input type="number" id="age" placeholder="Age (e.g., 35)" class="w-1/2 p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition" min="1">
+                                <select id="gender" class="w-1/2 p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition">
+                                    <option value="">Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <!-- LANGUAGE SELECTOR -->
+                            <select id="language" class="w-full p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition font-semibold text-gray-300">
+                                <option value="English">Output Language: English</option>
+                                <option value="Hindi">Output Language: Hindi (हिंदी)</option>
+                                <option value="Marathi">Output Language: Marathi (मराठी)</option>
+                                <option value="Tamil">Output Language: Tamil (தமிழ்)</option>
+                                <option value="Bengali">Output Language: Bengali (বাংলা)</option>
+                                <option value="Spanish">Output Language: Spanish (Español)</option>
+                            </select>
+                            <input type="text" id="duration" placeholder="Symptom Duration (e.g., '2 days')" class="w-full p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition">
+                        </div>
+
+                        <button type="submit" id="analyzeButton" class="w-full gradient-button text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg hover:shadow-xl flex justify-center items-center">
+                            <i class="fas fa-microscope mr-2"></i>
+                            Analyze Health
+                            <!-- Loading indicator removed from use -->
+                        </button>
+                        <p id="error-message" class="text-red-400 text-sm mt-3 hidden"></p>
+                    </form>
+                </div>
+
+                <!-- Analysis Graph Card (Risk Metrics) -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-4 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-chart-line text-red-400 mr-2"></i>
+                        Risk Metrics (Visual Analysis)
+                    </h2>
+                    <div id="riskMetricsDisplay" class="h-64 flex flex-col justify-end p-2 bg-gray-800 rounded-xl border border-gray-700">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel (Right Columns) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Overall Advanced Analysis Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-stethoscope text-green-400 mr-2"></i>
+                        Diagnosis & Advanced Summary
+                    </h2>
+                    <div id="diagnosisSummary" class="text-gray-300 leading-relaxed italic">
+                        <!-- Initial content moved to JS initialization -->
+                    </div>
+                </div>
+
+                <!-- Prognosis & Next Steps Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-shoe-prints text-cyan-400 mr-2"></i>
+                        Prognosis & Next Steps
+                    </h2>
+                    <div id="prognosisList" class="space-y-3">
+                        <!-- Initial content moved to JS initialization -->
+                    </div>
+                </div>
+
+                <!-- Medications/Remedies Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-pills text-indigo-400 mr-2"></i>
+                        Medications & Home Remedies
+                    </h2>
+                    <div id="medicationList" class="space-y-3">
+                        <!-- Initial content moved to JS initialization -->
+                    </div>
+                </div>
+
+                <!-- Diet & Lifestyle Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-apple-alt text-amber-400 mr-2"></i>
+                        Diet & Lifestyle Plan
+                    </h2>
+                    <div id="dietPlanList" class="space-y-3">
+                        <!-- Initial content moved to JS initialization -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        
+        const form = document.getElementById('analysisForm');
+        const symptomsInput = document.getElementById('symptoms');
+        const ageInput = document.getElementById('age');
+        const genderInput = document.getElementById('gender');
+        const durationInput = document.getElementById('duration');
+        const languageInput = document.getElementById('language');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const errorMessage = document.getElementById('error-message');
+
+        const diagnosisSummaryDiv = document.getElementById('diagnosisSummary');
+        const prognosisListDiv = document.getElementById('prognosisList');
+        const medicationListDiv = document.getElementById('medicationList');
+        const dietPlanListDiv = document.getElementById('dietPlanList');
+        const riskMetricsDisplay = document.getElementById('riskMetricsDisplay');
+
+        // =========================================================
+        // MOCK DATA STRUCTURES (Replaces Gemini API Output)
+        // =========================================================
+
+        const MOCK_RESULTS_ENGLISH = {
+            diagnosisSummary: "Based on the reported symptoms of fever, cough, and fatigue, the likely assessment points towards a common viral infection, such as the cold or flu. The body is fighting the infection. Adequate rest and hydration are key to recovery. Please monitor symptoms closely.",
+            medicationsAndRemedies: [
+                { name: "Acetaminophen (Paracetamol)", type: "OTC", description: "Use for fever and headache relief, strictly following dosage instructions." },
+                { name: "Honey & Ginger Tea", type: "Home Remedy", description: "Effective for soothing a persistent dry cough and throat irritation." },
+                { name: "Vapor Rub/Steam Inhalation", type: "Home Remedy", description: "Helps clear nasal passages and ease breathing congestion." }
+            ],
+            dietPlan: [
+                { category: "Focus On", items: "Warm broths, vegetable soups, and easily digestible foods like rice or toast." },
+                { category: "Avoid", items: "Sugary drinks, heavy fried foods, and highly processed snacks that stress the digestive system." },
+                { category: "Hydration", items: "Drink at least 8-10 glasses of water, herbal tea, or electrolyte solution daily." }
+            ],
+            riskMetrics: [
+                { metric: "Infection Severity", value: 65 },
+                { metric: "Dehydration Risk", value: 45 },
+                { metric: "Fatigue Level", value: 80 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "If fever exceeds 102°F (38.9°C) or difficulty breathing occurs, seek medical attention immediately.", urgency: "Immediate Care", icon: "🚨" },
+                { step: "Consult a doctor if symptoms worsen or persist beyond 7 days.", urgency: "Consult Doctor", icon: "📅" },
+                { step: "Prioritize 8-10 hours of sleep per night and reduce strenuous activity.", urgency: "Routine", icon: "🛌" }
+            ]
+        };
+
+        const MOCK_RESULTS_HINDI = {
+            diagnosisSummary: "तीन दिनों से हल्के बुखार, खांसी और थकान के लक्षणों के आधार पर, संभावित मूल्यांकन सामान्य वायरल संक्रमण, जैसे कि सामान्य सर्दी या इन्फ्लूएंजा (फ्लू) की ओर इशारा करता है। शरीर सक्रिय रूप से संक्रमण से लड़ रहा है, जिसके कारण ये लक्षण हो रहे हैं। ठीक होने के लिए पर्याप्त आराम और हाइड्रेशन महत्वपूर्ण हैं। कृपया लक्षणों पर बारीकी से नज़र रखें।",
+            medicationsAndRemedies: [
+                { name: "एसिटामिनोफेन (पेरासिटामोल)", type: "ओटीसी", description: "बुखार और सिरदर्द से राहत के लिए इस्तेमाल करें, खुराक के निर्देशों का सख्ती से पालन करें।" },
+                { name: "शहद और अदरक की चाय", type: "घरेलू उपाय", description: "लगातार सूखी खांसी और गले की जलन को शांत करने में प्रभावी।" },
+                { name: "भाप लेना (स्टीम इनहेलेशन)", type: "घरेलू उपाय", description: "नाक के मार्ग को साफ करने और सांस लेने की तकलीफ को कम करने में मदद करता है।" }
+            ],
+            dietPlan: [
+                { category: "इन पर ध्यान दें", items: "गर्म शोरबा, सब्जी का सूप, और आसानी से पचने वाले खाद्य पदार्थ जैसे चावल या टोस्ट।" },
+                { category: "इनसे बचें", items: "शक्कर युक्त पेय, भारी तले हुए खाद्य पदार्थ, और अत्यधिक प्रसंस्कृत स्नैक्स जो पाचन तंत्र पर तनाव डालते हैं।" },
+                { category: "हाइड्रेशन", items: "रोजाना कम से कम 8-10 गिलास पानी, हर्बल चाय, या इलेक्ट्रोलाइट घोल पिएं।" }
+            ],
+            riskMetrics: [
+                { metric: "संक्रमण की गंभीरता", value: 65 },
+                { metric: "निर्जलीकरण का जोखिम", value: 45 },
+                { metric: "थकान का स्तर", value: 80 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "यदि बुखार 102°F (38.9°C) से अधिक हो जाता है या सांस लेने में कठिनाई होती है, तो तुरंत चिकित्सा सहायता लें।", urgency: "तत्काल देखभाल", icon: "🚨" },
+                { step: "यदि लक्षण बिगड़ते हैं या 7 दिनों से अधिक समय तक बने रहते हैं तो डॉक्टर से परामर्श करें।", urgency: "डॉक्टर से परामर्श करें", icon: "📅" },
+                { step: "प्रति रात 8-10 घंटे की नींद को प्राथमिकता दें और ज़ोरदार गतिविधि कम करें।", urgency: "नियमित", icon: "🛌" }
+            ]
+        };
+
+        const MOCK_RESULTS_MARATHI = {
+            diagnosisSummary: "तीन दिवसांपासून सौम्य ताप, खोकला आणि थकवा या लक्षणांवर आधारित, संभाव्य मूल्यांकन सामान्य व्हायरल संसर्ग, जसे की सामान्य सर्दी किंवा इन्फ्लूएंजा (फ्लू) कडे निर्देशित करते. शरीर सक्रियपणे संसर्गाशी लढत आहे, ज्यामुळे ही लक्षणे दिसत आहेत. लवकर बरे होण्यासाठी पुरेसा आराम आणि हायड्रेशन महत्त्वाचे आहे. कृपया लक्षणांचे बारकाईने निरीक्षण करा.",
+            medicationsAndRemedies: [
+                { name: "एसीटामिनोफेन (पॅरासिटामॉल)", type: "ओटीसी", description: "ताप आणि डोकेदुखीपासून आराम मिळवण्यासाठी वापरा, मात्र डोसच्या सूचनांचे काटेकोरपणे पालन करा." },
+                { name: "मध आणि आले चहा", type: "घरगुती उपाय", description: "सततचा कोरडा खोकला आणि घशातील जळजळ शांत करण्यासाठी प्रभावी." },
+                { name: "वाफ घेणे (स्टीम इनहेलेशन)", type: "घरगुती उपाय", description: "नाकातील मार्ग साफ करण्यास आणि श्वास घेण्यास मदत करते." }
+            ],
+            dietPlan: [
+                { category: "यावर लक्ष केंद्रित करा", items: "गरम रस्सा, भाजीपाला सूप आणि सहज पचणारे पदार्थ जसे की भात किंवा टोस्ट." },
+                { category: "टाळा", items: "साखरयुक्त पेय, जड तळलेले पदार्थ आणि जास्त प्रक्रिया केलेले स्नॅक्स जे पाचन तंत्रावर ताण देतात." },
+                { category: "हायड्रेशन", items: "दररोज किमान 8-10 ग्लास पाणी, हर्बल चहा किंवा इलेक्ट्रोलाइट द्रावण प्या." }
+            ],
+            riskMetrics: [
+                { metric: "संसर्गाची तीव्रता", value: 65 },
+                { metric: "निर्जलीकरणचा धोका", value: 45 },
+                { metric: "थकव्याची पातळी", value: 80 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "जर ताप 102°F (38.9°C) पेक्षा जास्त वाढला किंवा श्वास घेण्यास अडचण आली, तर त्वरित वैद्यकीय मदत घ्या.", urgency: "त्वरित काळजी", icon: "🚨" },
+                { step: "लक्षणे बिघडल्यास किंवा 7 दिवसांपेक्षा जास्त काळ टिकून राहिल्यास डॉक्टरांचा सल्ला घ्या.", urgency: "डॉक्टरांचा सल्ला घ्या", icon: "📅" },
+                { step: "रात्री 8-10 तास झोपेला प्राधान्य द्या आणि कठोर शारीरिक हालचाल कमी करा.", urgency: "नियमित", icon: "🛌" }
+            ]
+        };
+
+        // This function now returns hardcoded data based on the selected language.
+        function generateMockHealthAnalysis(language) {
+            switch (language) {
+                case 'Hindi':
+                    return MOCK_RESULTS_HINDI;
+                case 'Marathi':
+                    return MOCK_RESULTS_MARATHI;
+                case 'Tamil':
+                case 'Bengali':
+                case 'Spanish':
+                case 'English':
+                default:
+                    // Return English for all other or default selection
+                    return MOCK_RESULTS_ENGLISH;
+            }
+        }
+        
+        // --- Rendering Functions (No Changes) ---
+        
+        function renderDiagnosisSummary(summary) {
+            diagnosisSummaryDiv.innerHTML = `
+                <p class="text-lg font-bold text-gray-50 mb-2">Likely Assessment:</p>
+                <p class="text-gray-300 leading-relaxed">${summary}</p>
+                <div class="mt-4 p-3 bg-red-900/40 text-red-300 border-l-4 border-red-500 rounded-lg">
+                    <p class="font-bold">Disclaimer:</p>
+                    <p class="text-sm">This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of a qualified health provider.</p>
+                </div>
+            `;
+        }
+        
+        function renderPrognosis(steps) {
+            prognosisListDiv.innerHTML = steps.map(item => {
+                let colorClass = 'bg-green-700/40 text-green-300 border-green-700';
+                if (item.urgency.includes('Immediate') || item.urgency.includes('तत्काल') || item.urgency.includes('त्वरित')) {
+                    colorClass = 'bg-red-700/40 text-red-300 border-red-700';
+                } else if (item.urgency.includes('Consult') || item.urgency.includes('परामर्श')) {
+                    colorClass = 'bg-yellow-700/40 text-yellow-300 border-yellow-700';
+                }
+                
+                return `
+                    <div class="p-4 glass-card rounded-xl hover:bg-white/10 transition duration-150 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <span class="mr-3 text-2xl">${item.icon || '📝'}</span>
+                            <p class="text-sm text-gray-300">${item.step}</p>
+                        </div>
+                        <span class="ml-4 text-xs font-semibold px-3 py-1 rounded-full border ${colorClass}">
+                            ${item.urgency}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+            if (steps.length === 0) {
+                prognosisListDiv.innerHTML = '<p class="text-gray-500">No specific action steps or prognosis provided.</p>';
+            }
+        }
+
+        function renderMedications(meds) {
+            medicationListDiv.innerHTML = meds.map(med => `
+                <div class="p-4 glass-card rounded-xl hover:bg-white/10 transition duration-150">
+                    <p class="font-semibold text-primary-blue">${med.name} 
+                        <span class="ml-2 text-xs font-normal px-2 py-1 rounded-full ${med.type.includes('Prescription') ? 'bg-red-700/40 text-red-300' : med.type.includes('OTC') || med.type.includes('ओटीसी') ? 'bg-indigo-700/40 text-indigo-300' : 'bg-green-700/40 text-green-300'}">
+                            ${med.type}
+                        </span>
+                    </p>
+                    <p class="text-sm text-gray-400 mt-1">${med.description}</p>
+                </div>
+            `).join('');
+            if (meds.length === 0) {
+                medicationListDiv.innerHTML = '<p class="text-gray-500">No specific medications suggested at this time.</p>';
+            }
+        }
+
+        function renderDietPlan(dietPlan) {
+            dietPlanListDiv.innerHTML = dietPlan.map(item => `
+                <div class="p-4 glass-card rounded-xl hover:bg-white/10 transition duration-150 flex items-start">
+                    <span class="mr-3 text-2xl">${item.category.includes('Avoid') || item.category.includes('टाळा') ? '🚫' : item.category.includes('Focus') || item.category.includes('ध्यान') ? '🥦' : item.category.includes('Hydration') || item.category.includes('हायड्रेशन') ? '💧' : '🧘'}</span>
+                    <div>
+                        <p class="font-semibold text-gray-50">${item.category}</p>
+                        <p class="text-sm text-gray-400">${item.items}</p>
+                    </div>
+                </div>
+            `).join('');
+            if (dietPlan.length === 0) {
+                dietPlanListDiv.innerHTML = '<p class="text-gray-500">No specific diet or lifestyle advice provided.</p>';
+            }
+        }
+        
+        function renderRiskMetricsGraph(metrics) {
+            riskMetricsDisplay.innerHTML = '';
+            const maxVal = 100;
+            
+            riskMetricsDisplay.classList.remove('justify-end', 'flex-col'); 
+            riskMetricsDisplay.classList.add('flex-row', 'items-end', 'h-64', 'justify-around');
+
+            const graphHTML = metrics.map(metric => {
+                const height = Math.max(10, metric.value);
+                let colorClass = 'bg-green-500';
+                if (metric.value > 75) {
+                    colorClass = 'bg-red-500';
+                } else if (metric.value > 50) {
+                    colorClass = 'bg-yellow-500';
+                }
+
+                return `
+                    <div class="flex flex-col items-center mx-1 h-full justify-end group cursor-pointer" style="width: 28%;">
+                        <div class="text-xs font-bold mb-1 text-gray-300">${metric.value}%</div>
+                        <div class="w-full rounded-t-lg transition-all duration-700 ease-out ${colorClass} hover:opacity-90" 
+                             style="height: ${height}%;" 
+                             title="${metric.metric}: ${metric.value}%">
+                        </div>
+                        <p class="text-xs text-center mt-2 text-gray-400 font-semibold w-full whitespace-nowrap overflow-hidden text-ellipsis" title="${metric.metric}">${metric.metric}</p>
+                    </div>
+                `;
+            }).join('');
+
+            riskMetricsDisplay.innerHTML = `
+                <div class="flex items-end justify-around w-full h-full p-2">
+                    ${graphHTML}
+                </div>
+            `;
+        }
+
+        // --- Initialization and Submission Logic ---
+
+        const initialDiagnosisText = "The overall analysis will be generated here, providing a comprehensive assessment based on your input.";
+        const initialPrognosisText = "Key action steps and expected outcomes will be listed here.";
+        const initialRemediesText = "Suggested medications, OTC relief, and home remedies will be listed here.";
+        const initialDietText = "Customized diet and lifestyle recommendations will be provided here.";
+        const initialGraphText = '<p class="text-center text-gray-500 py-20">Analysis graph will appear here after processing.</p>';
+
+        function initializeUI() {
+            diagnosisSummaryDiv.innerHTML = `<div class="text-gray-300 leading-relaxed italic">${initialDiagnosisText}</div>`;
+            prognosisListDiv.innerHTML = `<div class="text-gray-400">${initialPrognosisText}</div>`;
+            medicationListDiv.innerHTML = `<div class="text-gray-400">${initialRemediesText}</div>`;
+            dietPlanListDiv.innerHTML = `<div class="text-gray-400">${initialDietText}</div>`;
+            riskMetricsDisplay.innerHTML = initialGraphText;
+        }
+
+        window.onload = initializeUI;
+
+        // Event Listener for Form Submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = symptomsInput.value.trim();
+            const language = languageInput.value;
+
+            if (query.length < 5) {
+                errorMessage.textContent = 'Please provide a detailed description.';
+                errorMessage.classList.remove('hidden');
+                return;
+            } else {
+                errorMessage.classList.add('hidden');
+            }
+
+            // Since there is no API call, we simulate the analysis instantly
+            try {
+                // 1. Get the Mock Data
+                const analysisData = generateMockHealthAnalysis(language);
+
+                // 2. Render Results
+                renderDiagnosisSummary(analysisData.diagnosisSummary);
+                renderPrognosis(analysisData.prognosisAndNextSteps);
+                renderMedications(analysisData.medicationsAndRemedies);
+                renderDietPlan(analysisData.dietPlan);
+                renderRiskMetricsGraph(analysisData.riskMetrics);
+
+            } catch (error) {
+                console.error("Analysis Error (Caught):", error);
+                
+                // Enhanced, user-visible error message
+                const userError = `<div class="mt-4 p-4 glass-card border border-red-500">
+                                    <p class="font-bold text-red-400">Analysis Failed!</p>
+                                    <p class="text-sm text-gray-300">A logic error occurred while generating the mock data. Please check the console.</p>
+                                   </div>`;
+
+                diagnosisSummaryDiv.innerHTML = userError;
+                prognosisListDiv.innerHTML = `<p class="text-red-400 p-4">Error: See Diagnosis Summary for details.</p>`;
+                medicationListDiv.innerHTML = `<p class="text-red-400 p-4">Error: Analysis failed.</p>`;
+                dietPlanListDiv.innerHTML = `<p class="text-red-400 p-4">Error: Analysis failed.</p>`;
+                riskMetricsDisplay.innerHTML = '<p class="text-center text-red-400 py-20">Failed to load graph data.</p>';
+            }
+        });
+        
+    </script>
+</body>
+</html>
